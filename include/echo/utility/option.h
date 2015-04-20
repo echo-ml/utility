@@ -24,15 +24,15 @@ template <class ValueType, ValueType Value>
 auto option_impl(Option<ValueType, Value>) -> std::true_type;
 
 auto option_impl(...) -> std::false_type;
-}
-}
+}  // namespace option
+}  // namespace detail
 
 template <class T>
 constexpr bool option() {
   using Result = decltype(detail::option::option_impl(std::declval<T>()));
   return Result::value;
 }
-}
+}  // namespace concept
 
 /////////////////
 // null_option //
@@ -58,8 +58,8 @@ template <class... Options, CONCEPT_REQUIRES(const_algorithm::and_c<
 auto option_set_impl(OptionSet<Options...>) -> std::true_type;
 
 auto option_set_impl(...) -> std::false_type;
-}
-}
+}  // namespace option
+}  // namespace detail
 
 template <class T>
 constexpr bool option_set() {
@@ -71,7 +71,7 @@ template <class T>
 constexpr bool option_list() {
   return option_set<T>() || option<T>();
 }
-}
+}  // namespace concept
 
 ////////////////
 // has_option //
@@ -91,13 +91,19 @@ constexpr bool has_option_impl(
   return std::is_same<ValueType, ValueType2>::value ||
          has_option_impl<ValueType>(OptionSet<OptionsRest...>{});
 }
-}
-}
+}  // namespace option
+}  // namespace detail
 
 template <class ValueType, class OptionSet,
           CONCEPT_REQUIRES(concept::option_set<OptionSet>())>
 constexpr bool has_option() {
   return detail::option::has_option_impl<ValueType>(OptionSet{});
+}
+
+template <class ValueType, class Option,
+          CONCEPT_REQUIRES(concept::option<Option>())>
+constexpr bool has_option() {
+  return std::is_same<ValueType, typename Option::type>::value;
 }
 
 ////////////////
@@ -121,8 +127,8 @@ constexpr ValueType get_option_impl(
     OptionSet<Option<ValueType1, Value1>, OptionsRest...>) {
   return get_option_impl<ValueType>(OptionSet<OptionsRest...>());
 }
-}
-}
+}  // namespace option
+}  // namespace detail
 
 template <class ValueType, class OptionSet,
           CONCEPT_REQUIRES(concept::option_set<OptionSet>()),
@@ -135,6 +141,20 @@ constexpr auto get_option() {
 template <class ValueType, class OptionSet,
           CONCEPT_REQUIRES(concept::option_set<OptionSet>()),
           CONCEPT_REQUIRES(!has_option<ValueType, OptionSet>())>
+constexpr NullOption get_option() {
+  return {};
+}
+
+template <class ValueType, class Option,
+          CONCEPT_REQUIRES(concept::option<Option>()),
+          CONCEPT_REQUIRES(has_option<ValueType, Option>())>
+constexpr auto get_option() {
+  return Option{};
+}
+
+template <class ValueType, class Option,
+          CONCEPT_REQUIRES(concept::option<Option>()),
+          CONCEPT_REQUIRES(!has_option<ValueType, Option>())>
 constexpr NullOption get_option() {
   return {};
 }
@@ -202,8 +222,8 @@ struct ReplaceOptionImpl<Option<ValueType, Value1>, Option<ValueType, Value2>> {
 
 template <class Option1, class Option2>
 using ReplaceOption = typename ReplaceOptionImpl<Option1, Option2>::type;
-}
-}
+}  // namespace option
+}  // namespace detail
 
 ///////////////
 // operator| //
@@ -211,33 +231,34 @@ using ReplaceOption = typename ReplaceOptionImpl<Option1, Option2>::type;
 
 template <class... Options, class ValueType, ValueType Value,
           CONCEPT_REQUIRES(!has_option<ValueType, OptionSet<Options...>>())>
-auto operator|(OptionSet<Options...>, Option<ValueType, Value>) {
+constexpr auto operator|(OptionSet<Options...>, Option<ValueType, Value>) {
   return OptionSet<Option<ValueType, Value>, Options...>();
 }
 
 template <class... Options, class ValueType, ValueType Value,
           CONCEPT_REQUIRES(has_option<ValueType, OptionSet<Options...>>())>
-auto operator|(OptionSet<Options...>, Option<ValueType, Value>) {
+constexpr auto operator|(OptionSet<Options...>, Option<ValueType, Value>) {
   return OptionSet<
       detail::option::ReplaceOption<Option<ValueType, Value>, Options>...>{};
 }
 
 template <class... Options,
           CONCEPT_REQUIRES(concept::option_set<OptionSet<Options...>>())>
-auto operator|(OptionSet<Options...> lhs, OptionSet<>) {
+constexpr auto operator|(OptionSet<Options...> lhs, OptionSet<>) {
   return lhs;
 }
 
 template <class... OptionsLhs, class OptionRhsFirst, class... OptionsRhsRest>
-auto operator|(OptionSet<OptionsLhs...> options_lhs,
-               OptionSet<OptionRhsFirst, OptionsRhsRest...>) {
+constexpr auto operator|(OptionSet<OptionsLhs...> options_lhs,
+                         OptionSet<OptionRhsFirst, OptionsRhsRest...>) {
   return (options_lhs | OptionRhsFirst{}) | OptionSet<OptionsRhsRest...>{};
 }
 
 template <class ValueType, ValueType Value, class OptionsRhs,
           CONCEPT_REQUIRES(concept::option_list<OptionsRhs>())>
-auto operator|(Option<ValueType, Value> option, OptionsRhs options_rhs) {
+constexpr auto operator|(Option<ValueType, Value> option,
+                         OptionsRhs options_rhs) {
   return OptionSet<Option<ValueType, Value>>{} | options_rhs;
 }
-}
-}
+}  // namespace option
+}  // namespace echo

@@ -28,6 +28,9 @@ TEST_CASE("option") {
   REQUIRE(get_option<speed_t, OptionSet1>() != slow);
   REQUIRE(get_option<weight_t, OptionSet1>() == kNullOption);
 
+  REQUIRE(get_option<level_t, decltype(high)>() == high);
+  REQUIRE(get_option<level_t, decltype(fast)>() == kNullOption);
+
   using OptionSet3 = decltype(option_set1 | slow);
   REQUIRE(get_option<speed_t, OptionSet3>() == slow);
 }
