@@ -1,7 +1,7 @@
 #pragma once
 
 #include <echo/utility/option.h>
-#include <echo/utility/map_appy.h>
+#include <echo/utility/map_apply.h>
 
 namespace echo {
 
