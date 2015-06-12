@@ -53,8 +53,8 @@ namespace concept {
 
 namespace detail {
 namespace option {
-template <class... Options, CONCEPT_REQUIRES(const_algorithm::and_c<
-                                concept::option<Options>()...>())>
+template <class... Options,
+          CONCEPT_REQUIRES(and_c<concept::option<Options>()...>())>
 auto option_set_impl(OptionSet<Options...>) -> std::true_type;
 
 auto option_set_impl(...) -> std::false_type;

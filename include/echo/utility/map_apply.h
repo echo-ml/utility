@@ -20,7 +20,7 @@ auto valid_map_apply_impl(Function&& function, Evaluators&& evaluators,
                           std::index_sequence<EvaluatorIndexes...>,
                           Arguments&&... arguments)
     -> std::integral_constant<
-        bool, const_algorithm::and_c<echo::concept::callable<
+        bool, and_c<echo::concept::callable<
                   decltype(std::get<EvaluatorIndexes>(evaluators)),
                   Arguments...>()...>() &&
                   echo::concept::callable<Function,
