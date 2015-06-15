@@ -1,10 +1,12 @@
 #pragma once
 
 #include <echo/concept2.h>
+#include <echo/index.h>
 #include <initializer_list>
 #include <utility>
 #include <cassert>
 #include <array>
+#include <stdexcept>
 
 namespace echo {
 namespace initializer {
@@ -14,7 +16,7 @@ namespace initializer {
 //////////////////////////
 
 namespace detail {
-namespace initializer_list_accessor {
+namespace initializer_multilist {
 template <class Value, int N>
 struct InitializerMultilistImpl {
   using type = std::initializer_list<
@@ -30,15 +32,15 @@ struct InitializerMultilistImpl<Value, 0> {
 
 template <class Scalar, int N>
 using InitializerMultilist =
-    typename detail::initializer_list_accessor::InitializerMultilistImpl<
-        Scalar, N>::type;
+    typename detail::initializer_multilist::InitializerMultilistImpl<Scalar,
+                                                                     N>::type;
 
 /////////////////
 // get_extents //
 /////////////////
 
 namespace detail {
-namespace initializer_list_accessor {
+namespace initializer_multilist {
 
 template <int I, class Value, int N, CONCEPT_REQUIRES(I == 0)>
 int get_extent(const InitializerMultilist<Value, N>& values) {
@@ -56,11 +58,12 @@ auto get_extents_impl(std::index_sequence<Indexes...>,
   return std::array<int, N>{get_extent<Indexes, Value, N>(values)...};
 }
 
+}}
+
 template <class Value, int N>
 auto get_extents(const InitializerMultilist<Value, N>& values) {
-  return get_extents_impl<Value, N>(std::make_index_sequence<N>(), values);
-}
-}
+  return detail::initializer_multilist::get_extents_impl<Value, N>(
+      std::make_index_sequence<N>(), values);
 }
 
 //////////////////////////////////
@@ -68,7 +71,7 @@ auto get_extents(const InitializerMultilist<Value, N>& values) {
 //////////////////////////////////
 
 namespace detail {
-namespace initializer_list_accessor {
+namespace initializer_multilist {
 
 template <class Indexes, class Value>
 class InitializerMultilistAccessorImpl {};
@@ -110,8 +113,85 @@ class InitializerMultilistAccessorImpl<
 
 template <class Value, int N>
 using InitializerMultilistAccessor =
-    detail::initializer_list_accessor::InitializerMultilistAccessorImpl<
+    detail::initializer_multilist::InitializerMultilistAccessorImpl<
         std::make_index_sequence<N>, Value>;
+
+//////////////////////////
+// MultilistExtentError //
+//////////////////////////
+
+struct MultilistExtentError : std::runtime_error {
+  MultilistExtentError() : std::runtime_error("MultilistExtentError") {}
+};
+
+/////////////////////////////
+// k_indexed_initializable //
+/////////////////////////////
+
+namespace concept {
+namespace detail {
+namespace initializer_multilist {
+template <class>
+struct KIndexedInitializable {};
+
+template <std::size_t... Indexes>
+struct KIndexedInitializable<std::index_sequence<Indexes...>> : Concept {
+  template <class Value, class Accessor>
+  auto require(Value&& value, Accessor&& accessor) -> list<valid<
+      decltype(accessor(repeat_type_c<Indexes, index_t>()...) = value)>()>;
+};
+}
+}
+
+template <int K, class Value, class T>
+constexpr bool k_indexed_initializable() {
+  return models<detail::initializer_multilist::KIndexedInitializable<
+                    std::make_index_sequence<K>>,
+                Value, T>();
+}
+}
+
+////////////////
+// initialize //
+////////////////
+
+namespace detail {
+namespace initializer_multilist {
+
+template <int I, std::size_t N, class Value, class Functor,
+          CONCEPT_REQUIRES(I == N)>
+void initialize_impl(const Value& value, const std::array<int, N>& extents,
+                     const Functor& functor) {
+  functor(value);
+}
+
+template <int I, std::size_t N, class Values, class Functor,
+          CONCEPT_REQUIRES(I != N)>
+void initialize_impl(const Values& values, const std::array<int, N>& extents,
+                     const Functor& functor) {
+  if (values.size() != std::get<I>(extents)) throw MultilistExtentError();
+  int index = 0;
+  for (auto& values_i : values) {
+    auto functor_new = [&](const auto& value, auto... indexes) {
+      functor(value, index, indexes...);
+    };
+    initialize_impl<I + 1>(values_i, extents, functor_new);
+    ++index;
+  }
+}
+}
+}
+
+template <
+    class Value, int K, class Accessor,
+    CONCEPT_REQUIRES(concept::k_indexed_initializable<K, Value, Accessor>())>
+void initialize(InitializerMultilist<Value, K> values, Accessor&& accessor) {
+  auto extents = get_extents<Value, K>(values);
+  auto functor = [&](const Value& value, auto... indexes) {
+    accessor(indexes...) = value;
+  };
+  detail::initializer_multilist::initialize_impl<0>(values, extents, functor);
+}
 }
 
 using initializer::InitializerMultilist;
