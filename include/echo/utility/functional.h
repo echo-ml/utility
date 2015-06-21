@@ -29,6 +29,10 @@ ECHO_MAKE_FUNCTIONAL(LessOrEqual, less_or_equal, <= )
 ECHO_MAKE_FUNCTIONAL(greater, greater, > )
 ECHO_MAKE_FUNCTIONAL(greaterOrEqual, greater_or_equal, >= )
 ECHO_MAKE_FUNCTIONAL(Equal, equal, == )
+ECHO_MAKE_FUNCTIONAL(Plus, plus, +)
+ECHO_MAKE_FUNCTIONAL(Minus, minus, -)
+ECHO_MAKE_FUNCTIONAL(Multiplies, multiplies, *)
+ECHO_MAKE_FUNCTIONAL(Divides, divides, /)
 #undef ECHO_MAKE_FUNCTIONAL
 }
 }

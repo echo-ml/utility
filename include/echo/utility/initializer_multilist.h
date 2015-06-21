@@ -187,7 +187,7 @@ template <
     CONCEPT_REQUIRES(concept::k_indexed_initializable<K, Value, Accessor>())>
 void initialize(InitializerMultilist<Value, K> values, Accessor&& accessor) {
   auto extents = get_extents<Value, K>(values);
-  auto functor = [&](const Value& value, auto... indexes) {
+  auto functor = [&](const auto& value, auto... indexes) {
     accessor(indexes...) = value;
   };
   detail::initializer_multilist::initialize_impl<0>(values, extents, functor);
