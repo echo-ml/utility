@@ -1,7 +1,7 @@
 #pragma once
 
 #include <echo/utility/tuple_concept.h>
-#include <echo/concept2.h>
+#include <echo/concept.h>
 #include <tuple>
 
 namespace echo {

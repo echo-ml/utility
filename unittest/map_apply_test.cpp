@@ -23,7 +23,7 @@ TEST_CASE("map_apply") {
   using Valid1 = decltype(map_apply(std::plus<double>(), evaluators1, 3, a));
   CHECK(std::is_same<Valid1, std::false_type>());
 
-  auto functor = [](A a, double x) { return x; };
+  auto functor = [](A, double x) { return x; };
   using Valid2 = decltype(map_apply(functor, evaluators1, 3, 7));
   CHECK(std::is_same<Valid2, std::false_type>());
 }

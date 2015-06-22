@@ -1,6 +1,6 @@
 #pragma once
 
-#include <echo/concept2.h>
+#include <echo/concept.h>
 #include <echo/index.h>
 #include <initializer_list>
 #include <utility>
@@ -43,22 +43,22 @@ namespace detail {
 namespace initializer_multilist {
 
 template <int I, class Value, int N, CONCEPT_REQUIRES(I == 0)>
-int get_extent(const InitializerMultilist<Value, N>& values) {
+auto get_extent(const InitializerMultilist<Value, N>& values) {
   return values.size();
 }
 
 template <int I, class Value, int N, CONCEPT_REQUIRES(I != 0)>
-int get_extent(const InitializerMultilist<Value, N>& values) {
+auto get_extent(const InitializerMultilist<Value, N>& values) {
   return get_extent<I - 1, Value, N - 1>(*std::begin(values));
 }
 
 template <class Value, int N, std::size_t... Indexes>
 auto get_extents_impl(std::index_sequence<Indexes...>,
                       const InitializerMultilist<Value, N>& values) {
-  return std::array<int, N>{get_extent<Indexes, Value, N>(values)...};
+  return std::array<std::size_t, N>{get_extent<Indexes, Value, N>(values)...};
 }
-
-}}
+}
+}
 
 template <class Value, int N>
 auto get_extents(const InitializerMultilist<Value, N>& values) {
@@ -120,7 +120,7 @@ using InitializerMultilistAccessor =
 // MultilistExtentError //
 //////////////////////////
 
-struct MultilistExtentError : std::runtime_error {
+struct MultilistExtentError : virtual std::runtime_error {
   MultilistExtentError() : std::runtime_error("MultilistExtentError") {}
 };
 
@@ -160,14 +160,16 @@ namespace initializer_multilist {
 
 template <int I, std::size_t N, class Value, class Functor,
           CONCEPT_REQUIRES(I == N)>
-void initialize_impl(const Value& value, const std::array<int, N>& extents,
+void initialize_impl(const Value& value,
+                     const std::array<std::size_t, N>& extents,
                      const Functor& functor) {
   functor(value);
 }
 
 template <int I, std::size_t N, class Values, class Functor,
           CONCEPT_REQUIRES(I != N)>
-void initialize_impl(const Values& values, const std::array<int, N>& extents,
+void initialize_impl(const Values& values,
+                     const std::array<std::size_t, N>& extents,
                      const Functor& functor) {
   if (values.size() != std::get<I>(extents)) throw MultilistExtentError();
   int index = 0;
@@ -187,9 +189,8 @@ template <
     CONCEPT_REQUIRES(concept::k_indexed_initializable<K, Value, Accessor>())>
 void initialize(InitializerMultilist<Value, K> values, Accessor&& accessor) {
   auto extents = get_extents<Value, K>(values);
-  auto functor = [&](const auto& value, auto... indexes) {
-    accessor(indexes...) = value;
-  };
+  auto functor =
+      [&](const auto& value, auto... indexes) { accessor(indexes...) = value; };
   detail::initializer_multilist::initialize_impl<0>(values, extents, functor);
 }
 }

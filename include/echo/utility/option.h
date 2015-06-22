@@ -1,7 +1,7 @@
 #pragma once
 
 #include <type_traits>
-#include <echo/concept2.h>
+#include <echo/concept.h>
 
 namespace echo {
 namespace option {
