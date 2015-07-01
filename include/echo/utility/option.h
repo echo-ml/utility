@@ -1,15 +1,16 @@
 #pragma once
 
+#define DETAIL_NS detail_option
+
 #include <type_traits>
 #include <echo/concept.h>
 
 namespace echo {
 namespace option {
 
-////////////
-// Option //
-////////////
-
+//------------------------------------------------------------------------------
+// Option
+//------------------------------------------------------------------------------
 template <class ValueType, ValueType Value>
 struct Option {
   using type = ValueType;
@@ -18,52 +19,46 @@ struct Option {
 
 namespace concept {
 
-namespace detail {
-namespace option {
+namespace DETAIL_NS {
 template <class ValueType, ValueType Value>
 auto option_impl(Option<ValueType, Value>) -> std::true_type;
 
 auto option_impl(...) -> std::false_type;
-}  // namespace option
 }  // namespace detail
 
 template <class T>
 constexpr bool option() {
-  using Result = decltype(detail::option::option_impl(std::declval<T>()));
+  using Result = decltype(DETAIL_NS::option_impl(std::declval<T>()));
   return Result::value;
 }
 }  // namespace concept
 
-/////////////////
-// null_option //
-/////////////////
-
+//------------------------------------------------------------------------------
+// NullOption
+//------------------------------------------------------------------------------
 using NullOption = Option<std::nullptr_t, nullptr>;
 
 constexpr NullOption kNullOption{};
 
-///////////////
-// OptionSet //
-///////////////
-
+//------------------------------------------------------------------------------
+// OptionSet
+//------------------------------------------------------------------------------
 template <class... Options>
 struct OptionSet {};
 
 namespace concept {
 
-namespace detail {
-namespace option {
+namespace DETAIL_NS {
 template <class... Options,
           CONCEPT_REQUIRES(and_c<concept::option<Options>()...>())>
 auto option_set_impl(OptionSet<Options...>) -> std::true_type;
 
 auto option_set_impl(...) -> std::false_type;
-}  // namespace option
 }  // namespace detail
 
 template <class T>
 constexpr bool option_set() {
-  using Result = decltype(detail::option::option_set_impl(std::declval<T>()));
+  using Result = decltype(DETAIL_NS::option_set_impl(std::declval<T>()));
   return Result::value;
 }
 
@@ -73,12 +68,10 @@ constexpr bool option_list() {
 }
 }  // namespace concept
 
-////////////////
-// has_option //
-////////////////
-
-namespace detail {
-namespace option {
+//------------------------------------------------------------------------------
+// has_option
+//------------------------------------------------------------------------------
+namespace DETAIL_NS {
 template <class ValueType>
 constexpr bool has_option_impl(OptionSet<>) {
   return false;
@@ -91,13 +84,12 @@ constexpr bool has_option_impl(
   return std::is_same<ValueType, ValueType2>::value ||
          has_option_impl<ValueType>(OptionSet<OptionsRest...>{});
 }
-}  // namespace option
 }  // namespace detail
 
 template <class ValueType, class OptionSet,
           CONCEPT_REQUIRES(concept::option_set<OptionSet>())>
 constexpr bool has_option() {
-  return detail::option::has_option_impl<ValueType>(OptionSet{});
+  return DETAIL_NS::has_option_impl<ValueType>(OptionSet{});
 }
 
 template <class ValueType, class Option,
@@ -106,12 +98,10 @@ constexpr bool has_option() {
   return std::is_same<ValueType, typename Option::type>::value;
 }
 
-////////////////
-// get_option //
-////////////////
-
-namespace detail {
-namespace option {
+//------------------------------------------------------------------------------
+// get_option
+//------------------------------------------------------------------------------
+namespace DETAIL_NS {
 template <class ValueType, class ValueType1, ValueType1 Value1,
           class... OptionsRest,
           CONCEPT_REQUIRES(std::is_same<ValueType, ValueType1>::value)>
@@ -127,7 +117,6 @@ constexpr ValueType get_option_impl(
     OptionSet<Option<ValueType1, Value1>, OptionsRest...>) {
   return get_option_impl<ValueType>(OptionSet<OptionsRest...>());
 }
-}  // namespace option
 }  // namespace detail
 
 template <class ValueType, class OptionSet,
@@ -135,7 +124,7 @@ template <class ValueType, class OptionSet,
           CONCEPT_REQUIRES(has_option<ValueType, OptionSet>())>
 constexpr auto get_option() {
   return Option<ValueType,
-                detail::option::get_option_impl<ValueType>(OptionSet())>{};
+                DETAIL_NS::get_option_impl<ValueType>(OptionSet())>{};
 }
 
 template <class ValueType, class OptionSet,
@@ -159,10 +148,9 @@ constexpr NullOption get_option() {
   return {};
 }
 
-////////////////
-// operator== //
-////////////////
-
+//------------------------------------------------------------------------------
+// operator==
+//------------------------------------------------------------------------------
 template <class ValueType, ValueType Value1, ValueType Value2>
 constexpr bool operator==(Option<ValueType, Value1>,
                           Option<ValueType, Value2>) {
@@ -181,10 +169,9 @@ constexpr bool operator==(NullOption, Option<ValueType, Value>) {
 
 constexpr bool operator==(NullOption, NullOption) { return true; }
 
-////////////////
-// operator!= //
-////////////////
-
+//------------------------------------------------------------------------------
+// operator!=
+//------------------------------------------------------------------------------
 template <class ValueType, ValueType Value1, ValueType Value2>
 constexpr bool operator!=(Option<ValueType, Value1>,
                           Option<ValueType, Value2>) {
@@ -203,13 +190,10 @@ constexpr bool operator!=(NullOption, Option<ValueType, Value>) {
 
 constexpr bool operator!=(NullOption, NullOption) { return true; }
 
-////////////////////
-// replace_option //
-////////////////////
-
-namespace detail {
-namespace option {
-
+//------------------------------------------------------------------------------
+// replace_option
+//------------------------------------------------------------------------------
+namespace DETAIL_NS {
 template <class Option1, class Option2>
 struct ReplaceOptionImpl {
   using type = Option2;
@@ -222,13 +206,11 @@ struct ReplaceOptionImpl<Option<ValueType, Value1>, Option<ValueType, Value2>> {
 
 template <class Option1, class Option2>
 using ReplaceOption = typename ReplaceOptionImpl<Option1, Option2>::type;
-}  // namespace option
 }  // namespace detail
 
-///////////////
-// operator| //
-///////////////
-
+//------------------------------------------------------------------------------
+// operator|
+//------------------------------------------------------------------------------
 template <class... Options, class ValueType, ValueType Value,
           CONCEPT_REQUIRES(!has_option<ValueType, OptionSet<Options...>>())>
 constexpr auto operator|(OptionSet<Options...>, Option<ValueType, Value>) {
@@ -239,7 +221,7 @@ template <class... Options, class ValueType, ValueType Value,
           CONCEPT_REQUIRES(has_option<ValueType, OptionSet<Options...>>())>
 constexpr auto operator|(OptionSet<Options...>, Option<ValueType, Value>) {
   return OptionSet<
-      detail::option::ReplaceOption<Option<ValueType, Value>, Options>...>{};
+      DETAIL_NS::ReplaceOption<Option<ValueType, Value>, Options>...>{};
 }
 
 template <class... Options,
@@ -262,3 +244,5 @@ constexpr auto operator|(Option<ValueType, Value> option,
 }
 }  // namespace option
 }  // namespace echo
+
+#undef DETAIL_NS

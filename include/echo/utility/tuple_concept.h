@@ -1,5 +1,7 @@
 #pragma once
 
+#define detail_tuple
+
 #include <tuple>
 #include <echo/concept.h>
 
@@ -8,13 +10,10 @@ namespace tuple {
 
 namespace concept {
 
-///////////
-// tuple //
-///////////
-
-namespace detail {
-namespace tuple {
-
+//------------------------------------------------------------------------------
+// tuple
+//------------------------------------------------------------------------------
+namespace DETAIL_NS {
 template <class... T>
 using ConsumeTypes = std::true_type;
 
@@ -44,12 +43,13 @@ struct Tuple : Concept {
                    std::true_type>()>;
 };
 }
-}
 
 template <class T>
 constexpr bool tuple() {
-  return models<detail::tuple::Tuple, T>();
+  return models<DETAIL_NS::Tuple, T>();
 }
 }
 }
 }
+
+#undef DETAIL_NS

@@ -1,5 +1,7 @@
 #pragma once
 
+#define DETAIL_NS detail_map_apply
+
 #include <echo/utility/tuple_concept.h>
 #include <echo/concept.h>
 #include <tuple>
@@ -7,13 +9,10 @@
 namespace echo {
 namespace utility {
 
-/////////////////////
-// valid_map_apply //
-/////////////////////
-
-namespace detail {
-namespace map_apply {
-
+//------------------------------------------------------------------------------
+// valid_map_apply
+//------------------------------------------------------------------------------
+namespace DETAIL_NS {
 template <class Function, class Evaluators, std::size_t... EvaluatorIndexes,
           class... Arguments>
 auto valid_map_apply_impl(Function&& function, Evaluators&& evaluators,
@@ -38,15 +37,11 @@ constexpr bool valid_map_apply() {
   return Result::value;
 }
 }
-}
 
-///////////////
-// map_apply //
-///////////////
-
-namespace detail {
-namespace map_apply {
-
+//------------------------------------------------------------------------------
+// map_apply
+//------------------------------------------------------------------------------
+namespace DETAIL_NS {
 template <class Function, class Evaluators, std::size_t... EvaluatorIndexes,
           class... Arguments>
 decltype(auto) map_apply_impl(Function&& function, Evaluators&& evaluators,
@@ -55,19 +50,20 @@ decltype(auto) map_apply_impl(Function&& function, Evaluators&& evaluators,
   return function(std::get<EvaluatorIndexes>(evaluators)(arguments...)...);
 }
 }
-}
 
 template <class Function, class Evaluators, class... Arguments,
           CONCEPT_REQUIRES(tuple::concept::tuple<uncvref_t<Evaluators>>()),
-          CONCEPT_REQUIRES(detail::map_apply::valid_map_apply<
+          CONCEPT_REQUIRES(DETAIL_NS::valid_map_apply<
               Function, Evaluators,
               std::tuple_size<uncvref_t<Evaluators>>::value, Arguments...>())>
 decltype(auto) map_apply(Function&& function, Evaluators&& evaluators,
                          Arguments&&... arguments) {
-  return detail::map_apply::map_apply_impl(
+  return DETAIL_NS::map_apply_impl(
       std::forward<Function>(function), std::forward<Evaluators>(evaluators),
       std::make_index_sequence<std::tuple_size<uncvref_t<Evaluators>>::value>(),
       std::forward<Arguments>(arguments)...);
 }
 }
 }
+
+#undef DETAIL_NS
