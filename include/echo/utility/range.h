@@ -1,3 +1,5 @@
+#pragma once
+
 #include <echo/concept.h>
 
 namespace echo {

@@ -66,4 +66,8 @@ decltype(auto) map_apply(Function&& function, Evaluators&& evaluators,
 }
 }
 
+namespace echo {
+using echo::utility::map_apply;
+}
+
 #undef DETAIL_NS

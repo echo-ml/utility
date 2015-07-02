@@ -245,4 +245,9 @@ constexpr auto operator|(Option<ValueType, Value> option,
 }  // namespace option
 }  // namespace echo
 
+namespace echo {
+using echo::option::get_option;
+using echo::option::has_option;
+}
+
 #undef DETAIL_NS
