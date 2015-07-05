@@ -10,8 +10,6 @@ using index_t = long;
 //------------------------------------------------------------------------------
 // StaticIndex
 //------------------------------------------------------------------------------
-// template <index_t I>
-// struct StaticIndex : std::integral_constant<index_t, I> {};
 template<index_t I>
 using StaticIndex = htl::integral_constant<index_t, I>;
 
