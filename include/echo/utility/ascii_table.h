@@ -281,3 +281,5 @@ inline void print_table(std::ostream& out, const Table& table) {
 }
 }
 }
+
+#undef DETAIL_NS
