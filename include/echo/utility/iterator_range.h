@@ -7,12 +7,12 @@
 namespace echo {
 
 //------------------------------------------------------------------------------
-// Range
+// IteratorRange
 //------------------------------------------------------------------------------
 template <class Iterator>
-class Range {
+class IteratorRange {
  public:
-  Range(Iterator first, Iterator last) : _first(first), _last(last) {}
+  IteratorRange(Iterator first, Iterator last) : _first(first), _last(last) {}
   Iterator begin() const { return _first; }
   Iterator end() const { return _last; }
   std::size_t size() const { return std::distance(_first, _last); }
@@ -23,7 +23,7 @@ class Range {
 };
 
 template <class Iterator>
-auto make_range(Iterator first, Iterator last) {
-  return Range<Iterator>(first, last);
+auto make_iterator_range(Iterator first, Iterator last) {
+  return IteratorRange<Iterator>(first, last);
 }
 }

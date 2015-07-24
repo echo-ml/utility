@@ -2,7 +2,7 @@
 
 #define DETAIL_NS detail_ascii_table
 
-#include <echo/utility/range.h>
+#include <echo/utility/iterator_range.h>
 #include <echo/contract.h>
 #include <iostream>
 #include <string>
@@ -104,7 +104,7 @@ auto get_subcell_layouts(NextRow& next_row, int span, int i_start) {
     ++i;
   }
   if (span_sum != span) throw InvalidTable();
-  return make_range(&next_row[i_start], &next_row[i]);
+  return make_iterator_range(&next_row[i_start], &next_row[i]);
 }
 
 //------------------------------------------------------------------------------
@@ -134,7 +134,8 @@ inline void assign_minimum_widths(const RowLayout& next_row,
 //------------------------------------------------------------------------------
 // assign_width
 //------------------------------------------------------------------------------
-inline void assign_width(int width, Range<CellLayout*> subcell_layouts) {
+inline void assign_width(int width,
+                         IteratorRange<CellLayout*> subcell_layouts) {
   for (auto& subcell_layout : subcell_layouts) {
     subcell_layout.width = subcell_layout.minimum_width;
     width -= subcell_layout.minimum_width;
