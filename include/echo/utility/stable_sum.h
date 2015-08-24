@@ -52,9 +52,9 @@ iterator_traits::value_type<IteratorFirst> stable_sum(IteratorFirst i,
   return static_cast<iterator_traits::value_type<IteratorFirst>>(result);
 }
 
-template <class Range,
-          CONCEPT_REQUIRES(echo::concept::input_range<uncvref_t<Range>>())>
-auto stable_sum(const Range& range) {
+template <class Range, CONCEPT_REQUIRES(echo::concept::input_range<Range>())>
+auto stable_sum(const Range& range) -> decltype(stable_sum(echo::begin(range),
+                                                           echo::end(range))) {
   return stable_sum(echo::begin(range), echo::end(range));
 }
 }
