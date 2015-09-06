@@ -17,10 +17,18 @@ struct Begin {
     return begin(x);
   }
 };
+struct CBegin {
+  template <class T>
+  auto operator()(T&& x) const {
+    using std::cbegin;
+    return cbegin(x);
+  }
+};
 }
 
 namespace {
 static constexpr auto& begin = static_const<DETAIL_NS::Begin>();
+static constexpr auto& cbegin = static_const<DETAIL_NS::CBegin>();
 }
 
 //------------------------------------------------------------------------------
@@ -34,10 +42,18 @@ struct End {
     return end(x);
   }
 };
+struct CEnd {
+  template <class T>
+  auto operator()(T&& x) const {
+    using std::cend;
+    return cend(x);
+  }
+};
 }
 
 namespace {
 static constexpr auto& end = static_const<DETAIL_NS::End>();
+static constexpr auto& cend = static_const<DETAIL_NS::CEnd>();
 }
 }
 
