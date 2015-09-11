@@ -272,6 +272,8 @@ inline void print_table(std::ostream& out, const Table& table) {
   int row_index = 0;
   for (const auto& row : table) {
     if (row.is_divider()) {
+      if (row_index >= table_layout.size())
+        throw InvalidTable();
       print_divider(out, table_layout[row_index]);
       continue;
     }
