@@ -12,9 +12,9 @@ template <class Scalar, class IteratorFirst, class IteratorLast,
           CONCEPT_REQUIRES(
               echo::concept::iterator_range<IteratorFirst, IteratorLast>() &&
               echo::concept::input_iterator<IteratorFirst>() &&
-              std::is_floating_point<Scalar>() &&
+              std::is_floating_point<Scalar>::value &&
               std::is_convertible<iterator_traits::value_type<IteratorFirst>,
-                                  Scalar>())>
+                                  Scalar>::value)>
 Scalar kahan_sum(IteratorFirst first, IteratorLast last) {
   Scalar sum = 0;
   Scalar correction = 0;
@@ -36,12 +36,13 @@ Scalar kahan_sum(const Range& range) {
 //------------------------------------------------------------------------------
 // stable_sum
 //------------------------------------------------------------------------------
-template <
-    class IteratorFirst, class IteratorLast,
-    CONCEPT_REQUIRES(
-        echo::concept::iterator_range<IteratorFirst, IteratorLast>() &&
-        (std::is_same<float, iterator_traits::value_type<IteratorFirst>>() ||
-         std::is_same<double, iterator_traits::value_type<IteratorFirst>>()))>
+template <class IteratorFirst, class IteratorLast,
+          CONCEPT_REQUIRES(
+              echo::concept::iterator_range<IteratorFirst, IteratorLast>() &&
+              (std::is_same<
+                   float, iterator_traits::value_type<IteratorFirst>>::value ||
+               std::is_same<
+                   double, iterator_traits::value_type<IteratorFirst>>::value))>
 iterator_traits::value_type<IteratorFirst> stable_sum(IteratorFirst i,
                                                       IteratorLast last) {
   using SumScalar = std::conditional_t<
